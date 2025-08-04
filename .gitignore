@@ -1,0 +1,18 @@
+# Python cache / compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+venv/
+.env/
+
+# Environment variables
+*.env
+.env.*
+
+# Database files (optional - keep if you want to share sample DBs)
+*.db
+

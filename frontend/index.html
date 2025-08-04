@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chatgpt minus</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+<div class="app-container">
+  
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">💬 Chat Sessions</div>
+    <button id="new-chat-btn">+ New Chat</button>
+    <ul id="session-list"></ul>
+  </aside>
+
+  <!-- Chat container -->
+  <div class="chat-container">
+    <div class="chat-header">
+      <span></span> <span>Lucky Bee</span>
+    </div>
+    <div class="chat-messages" id="messages">
+      <div class="message bot">Hello! Ask me anything.</div>
+    </div>
+    <div class="chat-input">
+      <input id="question" type="text" placeholder="Type your question..." autocomplete="off" />
+      <button id="send-btn">Ask</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div id="imgModal" class="modal">
+  <span class="close">&times;</span>
+  <img class="modal-content" id="modalImg">
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("question");
+  const sendBtn = document.getElementById("send-btn");
+  const messages = document.getElementById("messages");
+  const sessionList = document.getElementById("session-list");
+  const newChatBtn = document.getElementById("new-chat-btn");
+  let sessionId = "";
+
+  /* -------------------------------
+     Load sessions from backend
+  ---------------------------------*/
+  async function loadSessions() {
+    try {
+      const res = await fetch("http://localhost:8000/api/sessions");
+      const sessions = await res.json();
+      sessionList.innerHTML = "";
+      sessions.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s.title;
+        li.onclick = () => loadSessionMessages(s.id);
+        sessionList.appendChild(li);
+      });
+    } catch (err) {
+      console.error("Error loading sessions:", err);
+    }
+  }
+
+  /* -------------------------------
+     Load messages for a session
+  ---------------------------------*/
+  async function loadSessionMessages(id) {
+    try {
+      sessionId = id;
+      messages.innerHTML = "";
+      const res = await fetch(`http://localhost:8000/api/sessions/${id}`);
+      const msgs = await res.json();
+      msgs.forEach(m => {
+        appendMessage(m.user, "user");
+        appendMessage(m.bot, "bot",m.type || "text");
+      });
+    } catch (err) {
+      console.error("Error loading messages:", err);
+    }
+  }
+
+  /* -------------------------------
+     Send message
+  ---------------------------------*/
+  async function askQuestion(question) {
+    if (!question.trim()) return;
+
+    appendMessage(question, "user");
+    toggleInput(true);
+    appendMessage(null, "typing");
+
+    try {
+      const response = await fetch("http://localhost:8000/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: question, session_id: sessionId })
+      });
+
+      const data = await response.json();
+      
+      appendMessage(data.answer || "🤷 Sorry, no answer found.", "bot", data.type || "text",  data.description || "");
+      sessionId = data.session_id;
+      loadSessions();
+    } catch (err) {
+      appendMessage("⚠ Sorry, something went wrong.", "bot");
+    } finally {
+      toggleInput(false);
+      input.focus();
+    }
+  }
+
+  /* -------------------------------
+     Append messages
+  ---------------------------------*/
+
+  
+  function appendMessage(content, sender, type = "text") {
+    const existingTyping = messages.querySelector(".typing-indicator");
+    if (existingTyping) existingTyping.remove();
+
+    if (sender === "typing") {
+      const typing = document.createElement("div");
+      typing.className = "typing-indicator bot";
+      typing.innerHTML = `SQL Analytics Bot is typing<span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
+      messages.appendChild(typing);
+      scrollMessagesToBottom();
+      return;
+    }
+
+    const msg = document.createElement("div");
+    msg.className = `message ${sender}`;
+    if (type === "image" && content?.startsWith("data:image")) {
+      const img = document.createElement("img");
+      img.src = content;
+      img.style.maxWidth = "100%";
+      img.style.borderRadius = "10px";
+      msg.appendChild(img);
+    } else {
+      msg.textContent = content;
+    }
+    messages.appendChild(msg);
+    scrollMessagesToBottom();
+  }
+
+  function scrollMessagesToBottom() {
+    messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" });
+  }
+
+  function toggleInput(disabled) {
+    input.disabled = disabled;
+    sendBtn.disabled = disabled;
+  }
+
+  /* -------------------------------
+     Event listeners
+  ---------------------------------*/
+  sendBtn.addEventListener("click", () => {
+    const question = input.value;
+    input.value = "";
+    askQuestion(question);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const question = input.value;
+      input.value = "";
+      askQuestion(question);
+    }
+  });
+
+  newChatBtn.addEventListener("click", () => {
+    sessionId = "";
+    messages.innerHTML = `<div class="message bot">👋 New chat started! Ask me anything.</div>`;
+  });
+
+  /* -------------------------------
+     Modal for image preview
+  ---------------------------------*/
+  const modal = document.getElementById("imgModal");
+  const modalImg = document.getElementById("modalImg");
+  const closeBtn = document.getElementsByClassName("close")[0];
+
+  messages.addEventListener("click", (e) => {
+    if (e.target.tagName === "IMG") {
+      modal.style.display = "block";
+      modalImg.src = e.target.src;
+    }
+  });
+
+  closeBtn.onclick = () => modal.style.display = "none";
+  modal.onclick = (event) => {
+    if (event.target === modal) modal.style.display = "none";
+  };
+
+  /* -------------------------------
+     Load sessions on page load
+  ---------------------------------*/
+  loadSessions();
+});
+</script>
+
+</body>
+</html>

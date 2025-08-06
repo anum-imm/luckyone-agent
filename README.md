@@ -33,7 +33,7 @@ luckyone-agent/
 ## Running Locally (without Docker)
 Clone the repository
 
-- git clone https://github.com/yourusername/luckyone-agent.git
+- git clone https://github.com/anum-imm/luckyone-agent.git
 - cd luckyone-agent/backend
 - Install dependencies
 - pip install -r requirements.txt
@@ -45,12 +45,12 @@ Clone the repository
 
 ## Running with Docker (Backend Only)
 
-- 1. Build the Backend Image
+- 1.Build the Backend Image
 
 cd backend
 docker build -t luckyone-backend .
 
-- 2. Run the Backend Container
+- 2.Run the Backend Container
 
 docker run -p 8000:8000 luckyone-backend
 

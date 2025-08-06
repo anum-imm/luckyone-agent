@@ -18,60 +18,42 @@ It is designed to **query structured data**, **analyze results**, and **generate
 ## Project Structure
 
 luckyone-agent/
-├── backend/ # FastAPI backend
-│ ├── main.py # API entry point
-│ ├── databases/ # SQLite DB and ORM models
-│ ├── tools/ # SQL + analytics utilities
-│ ├── requirements.txt # Python dependencies
-│ └── Dockerfile # Backend Dockerfile
-├── frontend/ # Frontend (HTML/JS/CSS)
-│ └── index.html
-└── README.md 
+-├── backend/ # FastAPI backend
+-│ ├── main.py # API entry point
+-│ ├── databases/ # SQLite DB and ORM models
+-│ ├── tools/ # SQL + analytics utilities
+-│ ├── requirements.txt # Python dependencies
+-│ └── Dockerfile # Backend Dockerfile
+-├── frontend/ # Frontend (HTML/JS/CSS)
+-│ └── index.html
+-└── README.md 
 
 
 
-Running Locally (without Docker)
+## Running Locally (without Docker)
 Clone the repository
 
-bash
-Copy
-Edit
-git clone https://github.com/yourusername/luckyone-agent.git
-cd luckyone-agent/backend
-Install dependencies
+-git clone https://github.com/yourusername/luckyone-agent.git
+-cd luckyone-agent/backend
+-Install dependencies
+-pip install -r requirements.txt
+-Run the backend
+-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+-Open the frontend
+-cd ../frontend
+-open index.html   # or open manually in your browser
 
-bash
-Copy
-Edit
-pip install -r requirements.txt
-Run the backend
+## Running with Docker (Backend Only)
 
-bash
-Copy
-Edit
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-Open the frontend
+-1. Build the Backend Image
 
-bash
-Copy
-Edit
-cd ../frontend
-open index.html   # or open manually in your browser
-Running with Docker (Backend Only)
-1. Build the Backend Image
-bash
-Copy
-Edit
 cd backend
 docker build -t luckyone-backend .
-2. Run the Backend Container
-bash
-Copy
-Edit
+
+-2. Run the Backend Container
+
 docker run -p 8000:8000 luckyone-backend
+
 Backend will be available at:
 
-arduino
-Copy
-Edit
 http://localhost:8000
